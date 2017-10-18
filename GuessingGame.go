@@ -9,55 +9,33 @@
 package main
 
 import (
-	"fmt"
-	"html/template"
-	"io/ioutil"
-	"net/http"
-	"bytes"
+  "html/template"
+  "log"
+  "net/http"
 )
-type Page struct {
+
+type PageVariables struct {
 	Title string
-	Body  []byte
-}
-
-func (p *Page) save() error {
-	filename := p.Title + ".txt"
-	return ioutil.WriteFile(filename, p.Body, 0600)
-}
-
-func loadPage(title string) (*Page, error) {
-	filename := title + ".txt"
-	body, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	return &Page{Title: title, Body: body}, nil
-}
-
-func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-	t, _ := template.ParseFiles(tmpl + ".html")
-	t.Execute(w, p)
-}
-
-func requestHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "<h1>Guessing Game</h1>")
-
-	body := new(bytes.Buffer)
-	body.ReadFrom(r.Body)
-	fmt.Fprintln(w, "r.Body:             ",  body.String())
-}
-func editHandler(w http.ResponseWriter, r *http.Request) {
-    title := r.URL.Path[len("/bootstrapTemplate/"):]
-    p, err := loadPage(title)
-    if err != nil {
-        p = &Page{Title: title}
-    }
-    t, _ := template.ParseFiles("bootstrapTemplate.html")
-    t.Execute(w, p)
 }
 
 func main() {
-	http.HandleFunc("/", requestHandler)
-	http.HandleFunc("/edit/", editHandler)
-	http.ListenAndServe(":8080", nil)
+	http.HandleFunc("/", HomePage)
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func HomePage(w http.ResponseWriter, r *http.Request){
+
+    title := "Guessing Gamw"
+    HomePageVars := PageVariables{ //store the title in a struct
+      Title : title,
+    }
+
+    t, err := template.ParseFiles("Q3.html") //parse the html file homepage.html
+    if err != nil { // if there is an error
+  	  log.Print("template parsing error: ", err) // log it
+  	}
+    err = t.Execute(w, HomePageVars) //execute the template and pass it the HomePageVars struct to fill in the gaps
+    if err != nil { // if there is an error
+  	  log.Print("template executing error: ", err) //log it
+  	}
 }
