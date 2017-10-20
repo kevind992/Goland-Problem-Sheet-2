@@ -19,18 +19,22 @@ type PageVariables struct {
 }
 
 func main() {
-	http.HandleFunc("/", HomePage)
+
+  http.HandleFunc("/guess/", GuessPage)
+  //http.HandleFunc("/index/", HomePage)
+  
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func HomePage(w http.ResponseWriter, r *http.Request){
+/*func HomePage(w http.ResponseWriter, r *http.Request){
 
     title := "Guessing Tom"
     HomePageVars := PageVariables{ //store the title in a struct
       Title : title,
     }
 
-    t, err := template.ParseFiles("template1.html") //parse the html file homepage.html
+    t, err := template.ParseFiles("index.html") //parse the html file homepage.html
+
     if err != nil { // if there is an error
   	  log.Print("template parsing error: ", err) // log it
   	}
@@ -38,4 +42,21 @@ func HomePage(w http.ResponseWriter, r *http.Request){
     if err != nil { // if there is an error
   	  log.Print("template executing error: ", err) //log it
   	}
-}
+}*/
+func GuessPage(w http.ResponseWriter, r *http.Request){
+  
+      title := "Guessing Tom"
+      GuessPageVars := PageVariables{ //store the title in a struct
+        Title : title,
+      }
+  
+      t, err := template.ParseFiles("guess.html") //parse the html file homepage.html
+  
+      if err != nil { // if there is an error
+        log.Print("template parsing error: ", err) // log it
+      }
+      err = t.Execute(w, GuessPageVars) //execute the template and pass it the HomePageVars struct to fill in the gaps
+      if err != nil { // if there is an error
+        log.Print("template executing error: ", err) //log it
+      }
+  }
