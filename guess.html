@@ -14,10 +14,12 @@
         <form action="/guess" method="GET">
           <div class="form-group">
             <label for="guess">Guess:</label>
-            <input type="text" class="form-control" name="guess">
+            <input type="number" class="form-control" name="guess">
           </div>
           <button type="submit" class="btn btn-default">Submit</button>
-          <h2>You have Quessed: </h2>
+          {{with}}
+            <h2>{{.guessString}}</h2>
+          {{end}}
         </form>
     </div>    
 </body>

@@ -27,6 +27,9 @@ type PageVariables struct {
 type MessageVariables struct{
   Message string
 }
+type GuessVariables struct{
+  Guess string
+}
 
 func HomePage(w http.ResponseWriter, r *http.Request){
     
@@ -69,7 +72,6 @@ func HomePage(w http.ResponseWriter, r *http.Request){
 func GuessPage(w http.ResponseWriter, r *http.Request){
 
     target := 0
-    userGuess := 0
   
     // Try to read the cookie.
     var cookie, err = r.Cookie("target")
@@ -94,36 +96,42 @@ func GuessPage(w http.ResponseWriter, r *http.Request){
     http.SetCookie(w, cookie)
 
 
-      message := "Guess a number Between 1 and 100"
-      Message := MessageVariables{ //store the title in a struct
-        Message : message,
-      }
-  
-      t, error := template.ParseFiles("guess.html") //parse the html file homepage.html
-  
-      if error != nil { // if there is an error
-        log.Print("template parsing error: ", error) // log it
-      }
-      error = t.Execute(w,  Message) //execute the template and pass it the HomePageVars struct to fill in the gaps
-      if error != nil { // if there is an error
-        log.Print("template executing error: ", error) //log it
-      }
+    message := "Guess a number Between 1 and 100"
+    Message := MessageVariables{ //store the title in a struct
+      Message : message,
+    }
 
-      r.ParseForm()
-      // logic part of log in
-      userGuess = strconv.Itoa(-42)
-      userGuess = r.Form["guess"]
-      fmt.Println(userGuess)
+    t, error := template.ParseFiles("guess.html") //parse the html file homepage.html
+
+    if error != nil { // if there is an error
+      log.Print("template parsing error: ", error) // log it
+    }
+    error = t.Execute(w,  Message) //execute the template and pass it the Message struct to fill in the gaps
+    if error != nil { // if there is an error
+      log.Print("template executing error: ", error) //log it
+    }
+
+    //Taking the user entry from the client and saving it to getInt
+    r.ParseForm()
+    // logic part of log in
+    getint,err:=strconv.Atoi(r.Form.Get("guess"))
+    
+    if(getint > 0 ){
+
+      guessString := strconv.Itoa(getint)
+
+      t.Execute(w,  guessString)
+    }
 }
 
 func main() {
  
-	// Send a 404 for favicon.ico
-  http.Handle("/favicon.ico", http.NotFoundHandler())
-  
-  http.HandleFunc("/", HomePage)
-  http.HandleFunc("/guess", GuessPage)
-  
-  
-	log.Fatal(http.ListenAndServe(":8080", nil))
+    // Send a 404 for favicon.ico
+    http.Handle("/favicon.ico", http.NotFoundHandler())
+    
+    http.HandleFunc("/", HomePage)
+    http.HandleFunc("/guess", GuessPage)
+    
+    
+    log.Fatal(http.ListenAndServe(":8080", nil))
 }
