@@ -69,6 +69,7 @@ func HomePage(w http.ResponseWriter, r *http.Request){
 func GuessPage(w http.ResponseWriter, r *http.Request){
 
     target := 0
+    userGuess := 0
   
     // Try to read the cookie.
     var cookie, err = r.Cookie("target")
@@ -93,7 +94,7 @@ func GuessPage(w http.ResponseWriter, r *http.Request){
     http.SetCookie(w, cookie)
 
 
-      message := "Guess a number Between 1 and 10"
+      message := "Guess a number Between 1 and 100"
       Message := MessageVariables{ //store the title in a struct
         Message : message,
       }
@@ -107,6 +108,12 @@ func GuessPage(w http.ResponseWriter, r *http.Request){
       if error != nil { // if there is an error
         log.Print("template executing error: ", error) //log it
       }
+
+      r.ParseForm()
+      // logic part of log in
+      userGuess = strconv.Itoa(-42)
+      userGuess = r.Form["guess"]
+      fmt.Println(userGuess)
 }
 
 func main() {
