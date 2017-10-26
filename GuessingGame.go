@@ -10,28 +10,22 @@ package main
 
 import (
 
-  "fmt"
+  //"fmt"
   "html/template"
-  "log"
+  //"log"
   "net/http"
   //"strings"
   "strconv"
   "time"
-  "math/rand"
+  //"math/rand"
 )
 
-type PageVariables struct {
-  Title string
+type Templatedata struct {
+	Time string
+	Author string
 }
 
-type MessageVariables struct{
-  Message string
-}
-type GuessVariables struct{
-  Guess string
-}
-
-func HomePage(w http.ResponseWriter, r *http.Request){
+func guessHandler(w http.ResponseWriter, r *http.Request){
     
     count := 0
   
@@ -54,84 +48,17 @@ func HomePage(w http.ResponseWriter, r *http.Request){
     }
     http.SetCookie(w, cookie)  
 
-    title := "Guessing Game"
-    HomePageVars := PageVariables{ //store the title in a struct
-      Title : title,
-    }
-  
-    t, err := template.ParseFiles("index.html") //parse the html file homepage.html
-
-    if err != nil { // if there is an error
-  	  log.Print("template parsing error: ", err) // log it
-  	}
-    err = t.Execute(w, HomePageVars)
-    if err != nil { // if there is an error
-  	  log.Print("template executing error: ", err) //log it
-  	}
-}
-func GuessPage(w http.ResponseWriter, r *http.Request){
-
-    target := 0
-  
-    // Try to read the cookie.
-    var cookie, err = r.Cookie("target")
-    if err == nil {
-      // If we could read it, try to convert its value to an int.
-      target, _ = strconv.Atoi(cookie.Value)
-    }
-  
-    // Increase count by 1 either way.
-    if (target == 0){
-
-        target = rand.Intn(10)
-    }
-    fmt.Println(target)
-    // Create a cookie instance and set the cookie.
-    // You can delete the Expires line (and the time import) to make a session cookie.
-    cookie = &http.Cookie{
-      Name:    "target",
-      Value:   strconv.Itoa(target),
-      Expires: time.Now().Add(72 * time.Hour),
-    }
-    http.SetCookie(w, cookie)
-
-
-    message := "Guess a number Between 1 and 100"
-    Message := MessageVariables{ //store the title in a struct
-      Message : message,
-    }
-
-    t, error := template.ParseFiles("guess.html") //parse the html file homepage.html
-
-    if error != nil { // if there is an error
-      log.Print("template parsing error: ", error) // log it
-    }
-    error = t.Execute(w,  Message) //execute the template and pass it the Message struct to fill in the gaps
-    if error != nil { // if there is an error
-      log.Print("template executing error: ", error) //log it
-    }
-
-    //Taking the user entry from the client and saving it to getInt
-    r.ParseForm()
-    // logic part of log in
-    getint,err:=strconv.Atoi(r.Form.Get("guess"))
+    //Parsing in the guess Template
+    t, _ := template.ParseFiles("template/guess.html")
+    t.Execute(w, Templatedata{Time: "HH,MM,SS", Author: "Kevin"})
     
-    if(getint > 0 ){
-
-      guessString := strconv.Itoa(getint)
-
-      t.Execute(w,  guessString)
-    }
 }
 
-func main() {
- 
-    // Send a 404 for favicon.ico
-    http.Handle("/favicon.ico", http.NotFoundHandler())
-    
-    http.HandleFunc("/", HomePage)
-    http.HandleFunc("/guess", GuessPage)
-    
-    
-    log.Fatal(http.ListenAndServe(":8080", nil))
+func main(){
+
+  http.Handle("/", http.FileServer(http.Dir("./static")))
+
+  http.HandleFunc("/guess",guessHandler)
+
+  http.ListenAndServe(":8080", nil)
 }
