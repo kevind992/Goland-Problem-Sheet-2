@@ -11,6 +11,7 @@ package main
 import (
 
   "html/template"
+  "log"
   "net/http"
   "strconv"
   "time"
@@ -71,14 +72,18 @@ func guessHandler(w http.ResponseWriter, r *http.Request){
           countGos++
       }else if guess < target{
           guessReply = "Your to Low, Try Again"
+          countGos++
       }
     }else{
       guessReply = " "
     }
     //Parsing the guess.tmpl file
-    t, _ := template.ParseFiles("template/guess.tmpl")
+    t, error := template.ParseFiles("template/guess.tmpl")
 
-    t.Execute(w, &GuessData{Message: headerMessage, Guess:guess, ContratsMes: guessReply, CountGos: countGos })
+    error = t.Execute(w, &GuessData{Message: headerMessage, Guess:guess, ContratsMes: guessReply, CountGos: countGos })
+    if error != nil { // if there is an error
+      log.Print("template executing error: ", error) //log it
+    }
 }
 func main(){
   //handling everything in the static folder
