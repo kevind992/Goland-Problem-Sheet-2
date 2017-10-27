@@ -10,52 +10,78 @@ package main
 
 import (
 
-  //"fmt"
   "html/template"
-  //"log"
   "net/http"
-  //"strings"
   "strconv"
   "time"
-  //"math/rand"
+  "math/rand"
 )
-
-type Templatedata struct {
-	Time string
-	Author string
+//Setting Struct
+type GuessData struct {
+  Message string
+  ContratsMes string
+  Guess int
+  CountGos int
 }
 
+//Setting Variables
+var target int = 0
+var countGos = 0
+
 func guessHandler(w http.ResponseWriter, r *http.Request){
-    
-    count := 0
-  
+   
+    //This will be displayed in the H1 on the guess.tmpl
+    headerMessage := "Guess a number between 1 and 20"
+   
+    guessReply := " "
+
     // Try to read the cookie.
-    var cookie, err = r.Cookie("count")
+    var cookie, err = r.Cookie("target")
     if err == nil {
       // If we could read it, try to convert its value to an int.
-      count, _ = strconv.Atoi(cookie.Value)
+      target, _ = strconv.Atoi(cookie.Value)
     }
-  
-    // Increase count by 1 either way.
-    count += 1
-  
+    //if random number is equeled to 0 rand.Intn is generating a random number between 1 & 20
+    if (target == 0){
+      rand.Seed(time.Now().UTC().UnixNano())
+      target = rand.Intn(20)
+    }
     // Create a cookie instance and set the cookie.
     // You can delete the Expires line (and the time import) to make a session cookie.
     cookie = &http.Cookie{
-      Name:    "count",
-      Value:   strconv.Itoa(count),
+      Name:    "target",
+      Value:   strconv.Itoa(target),
       Expires: time.Now().Add(72 * time.Hour),
     }
-    http.SetCookie(w, cookie)  
-
-    //Parsing in the guess Template
-    t, _ := template.ParseFiles("template/guess.html")
-    t.Execute(w, Templatedata{Time: "HH,MM,SS", Author: "Kevin"})
+    http.SetCookie(w, cookie)
     
+    r.ParseForm()
+
+    //taking the user input from guess.tmpl and casting it to an int into guess
+    guess,_:=strconv.Atoi(r.Form.Get("guessinput"))
+  
+    //Filtering the different responces by what the user guess is
+    if guess > 0 {
+      if guess == target{
+          guessReply = "Correct Answer!"
+          target = 0;
+          countGos++
+      }else if guess > target{
+          guessReply = "Your to High, Try Again"
+          countGos++
+      }else if guess < target{
+          guessReply = "Your to Low, Try Again"
+      }
+    }else{
+      guessReply = " "
+    }
+    //Parsing the guess.tmpl file
+    t, _ := template.ParseFiles("template/guess.tmpl")
+
+    t.Execute(w, &GuessData{Message: headerMessage, Guess:guess, ContratsMes: guessReply, CountGos: countGos })
 }
-
 func main(){
-
+  //handling everything in the static folder
   http.Handle("/", http.FileServer(http.Dir("./static")))
 
   http.HandleFunc("/guess",guessHandler)
